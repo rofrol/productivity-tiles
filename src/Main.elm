@@ -3,6 +3,8 @@ module Main exposing (main)
 import Css exposing (..)
 import Css.Foreign exposing (body, global)
 import Css.Helpers exposing (toCssIdentifier)
+import Date
+import Dict
 import Html
 import Html.Styled exposing (Html, button, div, fromUnstyled, li, styled, text, toUnstyled, ul)
 import Html.Styled.Attributes exposing (class, classList)
@@ -82,22 +84,25 @@ view model =
         []
         [ bodyStyleNode
         , div [] [ text <| toString model ]
-        , renderTiles model.tiles
+        , renderTiles (Dict.get "2015-10-05" model |> Maybe.withDefault { tiles = [] } |> .tiles)
         ]
         |> toUnstyled
 
 
 type alias Model =
-    { tiles : List (List String)
-    }
+    Dict.Dict String { tiles : List (List String) }
+
+
+tiles : List (List String)
+tiles =
+    [ [ "ELM", "AI" ]
+    , [ "Rust", "e-commerce" ]
+    ]
 
 
 model : Model
 model =
-    Model
-        [ [ "ELM", "AI" ]
-        , [ "Rust", "e-commerce" ]
-        ]
+    Dict.fromList [ ( "2015-10-05", { tiles = tiles } ) ]
 
 
 type Msg
