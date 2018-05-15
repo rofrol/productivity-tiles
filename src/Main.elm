@@ -83,19 +83,20 @@ tilesStyleNode =
         ]
 
 
+renderRow : List String -> Html msg
+renderRow row =
+    row
+        |> List.map
+            (\tile ->
+                div [ class (toCssIdentifier TileClass) ] [ text tile ]
+            )
+        |> div [ class (toCssIdentifier RowClass) ]
+
+
 renderTiles : List (List String) -> Html msg
 renderTiles tiles =
     tiles
-        |> List.map
-            (\row ->
-                div [ class (toCssIdentifier RowClass) ]
-                    (row
-                        |> List.map
-                            (\tile ->
-                                div [ class (toCssIdentifier TileClass) ] [ text tile ]
-                            )
-                    )
-            )
+        |> List.map renderRow
         |> (::) tilesStyleNode
         |> div [ class (toCssIdentifier TilesClass) ]
 
