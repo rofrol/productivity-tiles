@@ -18,6 +18,7 @@ bodyStyleNode =
             , color (hex "#000")
             , fontFamilies [ "sans-serif" ]
             , boxSizing borderBox
+            , paddingTop (px 20)
             ]
         , each
             [ Css.Foreign.input, Css.Foreign.textarea, Css.Foreign.button ]
@@ -69,8 +70,10 @@ tilesStyleNode =
             , fontSize (px 34)
             ]
         , Css.Foreign.class ButtonClass
-            [ padding2 (px 10) (px 20)
-            , margin (px 10)
+            [ margin (px 10)
+            , width (px 200)
+            , height (px 100)
+            , fontSize (px 36)
             ]
         , Css.Foreign.class DateBarClass
             [ displayFlex
