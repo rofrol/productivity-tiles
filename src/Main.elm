@@ -77,6 +77,19 @@ renderTiles tiles =
         |> div [ class (toCssIdentifier TilesClass) ]
 
 
+getLastDate : Model -> String
+getLastDate model =
+    model
+        |> Dict.keys
+        |> lastElem
+        |> Maybe.withDefault ""
+
+
+lastElem : List a -> Maybe a
+lastElem =
+    List.foldl (Just >> (\x _ -> x)) Nothing
+
+
 view : Model -> Html.Html msg
 view model =
     styled div
@@ -84,7 +97,7 @@ view model =
         []
         [ bodyStyleNode
         , div [] [ text <| toString model ]
-        , renderTiles (Dict.get "2015-10-05" model |> Maybe.withDefault { tiles = [] } |> .tiles)
+        , renderTiles (model |> Dict.get (getLastDate model) |> Maybe.withDefault { tiles = [] } |> .tiles)
         ]
         |> toUnstyled
 
@@ -100,9 +113,19 @@ tiles =
     ]
 
 
+tiles2 : List (List String)
+tiles2 =
+    [ [ "ELM", "AI" ]
+    , [ "grasshopper app", "e-commerce" ]
+    ]
+
+
 model : Model
 model =
-    Dict.fromList [ ( "2015-10-05", { tiles = tiles } ) ]
+    Dict.fromList
+        [ ( "2018-05-14", { tiles = tiles } )
+        , ( "2018-05-15", { tiles = tiles2 } )
+        ]
 
 
 type Msg
