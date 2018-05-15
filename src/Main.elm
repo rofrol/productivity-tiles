@@ -110,7 +110,7 @@ getLastDate model =
 
 lastElem : List a -> Maybe a
 lastElem =
-    List.foldl (Just >> (\x _ -> x)) Nothing
+    List.foldl (Just >> always) Nothing
 
 
 previousElem : String -> List String -> Maybe String
