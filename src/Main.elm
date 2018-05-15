@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Css exposing (..)
-import Css.Foreign exposing (body, global)
+import Css.Foreign exposing (body, each, global)
 import Css.Helpers exposing (toCssIdentifier)
 import Dict
 import Html
@@ -18,6 +18,15 @@ bodyStyleNode =
             , color (hex "#000")
             , fontFamilies [ "sans-serif" ]
             , boxSizing borderBox
+            ]
+        , each
+            [ Css.Foreign.input, Css.Foreign.textarea, Css.Foreign.button ]
+            [ property "-webkit-appearance" "none" --Safari/Chrome
+            , property "-moz-appearance" "none" -- Firefox
+            , property "-ms-appearance" "none" -- IE
+            , property "-o-appearance" "none" -- Opera
+            , property "appearance" "none"
+            , property "-webkit-border-radius" "0"
             ]
         ]
 
