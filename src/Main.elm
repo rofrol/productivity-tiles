@@ -3,11 +3,11 @@ module Main exposing (main)
 import Css exposing (..)
 import Css.Foreign exposing (body, global)
 import Css.Helpers exposing (toCssIdentifier)
-import Date
 import Dict
 import Html
 import Html.Styled exposing (Html, button, div, fromUnstyled, li, styled, text, toUnstyled, ul)
 import Html.Styled.Attributes exposing (class, classList)
+import Html.Styled.Events exposing (onClick)
 
 
 bodyStyleNode : Html msg
@@ -22,11 +22,13 @@ bodyStyleNode =
         ]
 
 
-type DivClasses
+type CssClasses
     = Div1Class
     | TilesClass
     | RowClass
     | TileClass
+    | ButtonClass
+    | DateBarClass
 
 
 tileMarginPx : number
@@ -56,6 +58,15 @@ tilesStyleNode =
                 ]
             , padding (px 20)
             , fontSize (px 34)
+            ]
+        , Css.Foreign.class ButtonClass
+            [ padding2 (px 10) (px 20)
+            , margin (px 10)
+            ]
+        , Css.Foreign.class DateBarClass
+            [ displayFlex
+            , justifyContent center
+            , alignItems center
             ]
         ]
 
@@ -104,19 +115,21 @@ nextElem last list =
         |> List.head
 
 
-view : Model -> Html.Html msg
+view : Model -> Html.Html Msg
 view model =
     styled div
         []
         []
         [ bodyStyleNode
-        , div [] [ text <| toString model ]
-        , div []
-            [ button [] [ text "Previous" ]
+        , div [ class (toCssIdentifier DateBarClass) ]
+            [ button [ onClick Previous, class (toCssIdentifier ButtonClass) ] [ text "Previous" ]
             , text model.selectedDate
-            , button [] [ text "Next" ]
+            , button [ onClick Next, class (toCssIdentifier ButtonClass) ] [ text "Next" ]
             ]
-        , renderTiles (model.calendar |> Dict.get (getLastDate model.calendar) |> Maybe.withDefault { tiles = [] } |> .tiles)
+        , renderTiles (model.calendar |> Dict.get model.selectedDate |> Maybe.withDefault { tiles = [] } |> .tiles)
+        , div [] [ text <| toString model ]
+        , text <| toString <| previousElem "2018-05-15" [ "2018-05-16", "2018-05-15", "2018-05-14", "2018-05-13" ]
+        , text <| toString <| nextElem "2018-05-15" [ "2018-05-16", "2018-05-15", "2018-05-14", "2018-05-13" ]
         ]
         |> toUnstyled
 
@@ -129,7 +142,7 @@ type alias Model =
 
 tiles : List (List String)
 tiles =
-    [ [ "ELM", "AI" ]
+    [ [ "Meditation", "albert" ]
     , [ "Rust", "e-commerce" ]
     ]
 
@@ -155,12 +168,18 @@ model =
 
 
 type Msg
-    = NoOp
+    = Previous
+    | Next
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        Previous ->
+            ( { model | selectedDate = previousElem model.selectedDate (Dict.keys model.calendar) |> Maybe.withDefault model.selectedDate }, Cmd.none )
+
+        Next ->
+            ( { model | selectedDate = nextElem model.selectedDate (Dict.keys model.calendar) |> Maybe.withDefault model.selectedDate }, Cmd.none )
 
 
 main : Program Never Model Msg
