@@ -77,7 +77,7 @@ renderTiles tiles =
         |> div [ class (toCssIdentifier TilesClass) ]
 
 
-getLastDate : Model -> String
+getLastDate : Dict.Dict String { tiles : List (List String) } -> String
 getLastDate model =
     model
         |> Dict.keys
@@ -90,6 +90,20 @@ lastElem =
     List.foldl (Just >> (\x _ -> x)) Nothing
 
 
+previousElem : String -> List String -> Maybe String
+previousElem last list =
+    list
+        |> List.filter (\item -> item < last)
+        |> List.head
+
+
+nextElem : String -> List String -> Maybe String
+nextElem last list =
+    list
+        |> List.filter (\item -> item > last)
+        |> List.head
+
+
 view : Model -> Html.Html msg
 view model =
     styled div
@@ -97,13 +111,20 @@ view model =
         []
         [ bodyStyleNode
         , div [] [ text <| toString model ]
-        , renderTiles (model |> Dict.get (getLastDate model) |> Maybe.withDefault { tiles = [] } |> .tiles)
+        , div []
+            [ button [] [ text "Previous" ]
+            , text model.selectedDate
+            , button [] [ text "Next" ]
+            ]
+        , renderTiles (model.calendar |> Dict.get (getLastDate model.calendar) |> Maybe.withDefault { tiles = [] } |> .tiles)
         ]
         |> toUnstyled
 
 
 type alias Model =
-    Dict.Dict String { tiles : List (List String) }
+    { calendar : Dict.Dict String { tiles : List (List String) }
+    , selectedDate : String
+    }
 
 
 tiles : List (List String)
@@ -120,12 +141,17 @@ tiles2 =
     ]
 
 
-model : Model
-model =
+calendar : Dict.Dict String { tiles : List (List String) }
+calendar =
     Dict.fromList
         [ ( "2018-05-14", { tiles = tiles } )
         , ( "2018-05-15", { tiles = tiles2 } )
         ]
+
+
+model : Model
+model =
+    Model calendar (getLastDate calendar)
 
 
 type Msg
