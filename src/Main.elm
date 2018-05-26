@@ -7,7 +7,7 @@ import Html
 import Html.Styled exposing (Html, button, div, fromUnstyled, li, styled, text, toUnstyled, ul)
 import Html.Styled.Attributes exposing (class, classList)
 import Html.Styled.Events exposing (onClick)
-import SelectList as SL
+import List.Zipper as LZ
 
 
 bodyStyleNode : Html msg
@@ -108,18 +108,28 @@ view model =
         []
         [ bodyStyleNode
         , div [ class (toCssIdentifier DateBarClass) ]
-            [ button [ onClick Previous, class (toCssIdentifier ButtonClass) ] [ text "Previous" ]
-            , text <| .id <| SL.selected model.calendar
-            , button [ onClick Next, class (toCssIdentifier ButtonClass) ] [ text "Next" ]
+            [ button
+                [ onClick Previous
+                , class (toCssIdentifier ButtonClass)
+                , Html.Styled.Attributes.disabled (LZ.before model.calendar |> List.length |> (==) 0)
+                ]
+                [ text "Previous" ]
+            , text <| .id <| LZ.current model.calendar
+            , button
+                [ onClick Next
+                , class (toCssIdentifier ButtonClass)
+                , Html.Styled.Attributes.disabled (LZ.after model.calendar |> List.length |> (==) 0)
+                ]
+                [ text "Next" ]
             ]
-        , SL.selected model.calendar |> .tiles |> renderTiles
+        , LZ.current model.calendar |> .tiles |> renderTiles
         , div [] [ text <| toString model ]
         ]
         |> toUnstyled
 
 
 type alias Model =
-    { calendar : SL.SelectList { id : String, tiles : List (List String) }
+    { calendar : LZ.Zipper { id : String, tiles : List (List String) }
     }
 
 
@@ -144,14 +154,24 @@ tiles3 =
     ]
 
 
-calendar : SL.SelectList { id : String, tiles : List (List String) }
+type alias CalendarElement a =
+    { id : a, tiles : List (List a) }
+
+
+emptyCalendarElement : CalendarElement String
+emptyCalendarElement =
+    { id = "2018-05-14", tiles = [] }
+
+
+calendar : LZ.Zipper (CalendarElement String)
 calendar =
-    SL.fromLists
+    LZ.fromList
         [ { id = "2018-05-14", tiles = tiles }
         , { id = "2018-05-15", tiles = tiles2 }
+        , { id = "2018-05-16", tiles = tiles3 }
         ]
-        { id = "2018-05-16", tiles = tiles3 }
-        []
+        |> LZ.withDefault emptyCalendarElement
+        |> LZ.last
 
 
 model : Model
@@ -168,10 +188,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Previous ->
-            ( { model | calendar = SL.select (\e -> e.id < (.id <| SL.selected model.calendar)) model.calendar }, Cmd.none )
+            ( { model | calendar = LZ.previous model.calendar |> Maybe.withDefault model.calendar }, Cmd.none )
 
         Next ->
-            ( { model | calendar = SL.select (\e -> e.id > (.id <| SL.selected model.calendar)) model.calendar }, Cmd.none )
+            ( { model | calendar = LZ.next model.calendar |> Maybe.withDefault model.calendar }, Cmd.none )
 
 
 main : Program Never Model Msg
