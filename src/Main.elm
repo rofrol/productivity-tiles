@@ -3,11 +3,11 @@ module Main exposing (main)
 import Css exposing (..)
 import Css.Foreign exposing (body, each, global)
 import Css.Helpers exposing (toCssIdentifier)
-import Dict
 import Html
 import Html.Styled exposing (Html, button, div, fromUnstyled, li, styled, text, toUnstyled, ul)
 import Html.Styled.Attributes exposing (class, classList)
 import Html.Styled.Events exposing (onClick)
+import SelectList as SL
 
 
 bodyStyleNode : Html msg
@@ -101,33 +101,6 @@ renderTiles tiles =
         |> div [ class (toCssIdentifier TilesClass) ]
 
 
-getLastDate : Dict.Dict String { tiles : List (List String) } -> String
-getLastDate model =
-    model
-        |> Dict.keys
-        |> lastElem
-        |> Maybe.withDefault ""
-
-
-lastElem : List a -> Maybe a
-lastElem =
-    List.foldl (Just >> always) Nothing
-
-
-previousElem : String -> List String -> Maybe String
-previousElem last list =
-    list
-        |> List.filter (\item -> item < last)
-        |> List.head
-
-
-nextElem : String -> List String -> Maybe String
-nextElem last list =
-    list
-        |> List.filter (\item -> item > last)
-        |> List.head
-
-
 view : Model -> Html.Html Msg
 view model =
     styled div
@@ -136,20 +109,17 @@ view model =
         [ bodyStyleNode
         , div [ class (toCssIdentifier DateBarClass) ]
             [ button [ onClick Previous, class (toCssIdentifier ButtonClass) ] [ text "Previous" ]
-            , text model.selectedDate
+            , text <| Tuple.first <| SL.selected model.calendar
             , button [ onClick Next, class (toCssIdentifier ButtonClass) ] [ text "Next" ]
             ]
-        , renderTiles (model.calendar |> Dict.get model.selectedDate |> Maybe.withDefault { tiles = [] } |> .tiles)
+        , SL.selected model.calendar |> Tuple.second |> .tiles |> renderTiles
         , div [] [ text <| toString model ]
-        , text <| toString <| previousElem "2018-05-15" [ "2018-05-16", "2018-05-15", "2018-05-14", "2018-05-13" ]
-        , text <| toString <| nextElem "2018-05-15" [ "2018-05-16", "2018-05-15", "2018-05-14", "2018-05-13" ]
         ]
         |> toUnstyled
 
 
 type alias Model =
-    { calendar : Dict.Dict String { tiles : List (List String) }
-    , selectedDate : String
+    { calendar : SL.SelectList ( String, { tiles : List (List String) } )
     }
 
 
@@ -167,17 +137,26 @@ tiles2 =
     ]
 
 
-calendar : Dict.Dict String { tiles : List (List String) }
+tiles3 : List (List String)
+tiles3 =
+    [ [ "ELM", "AI" ]
+    , [ "e-commerce" ]
+    ]
+
+
+calendar : SL.SelectList ( String, { tiles : List (List String) } )
 calendar =
-    Dict.fromList
+    SL.fromLists
         [ ( "2018-05-14", { tiles = tiles } )
         , ( "2018-05-15", { tiles = tiles2 } )
         ]
+        ( "2018-05-16", { tiles = tiles3 } )
+        []
 
 
 model : Model
 model =
-    Model calendar (getLastDate calendar)
+    Model calendar
 
 
 type Msg
@@ -189,10 +168,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Previous ->
-            ( { model | selectedDate = previousElem model.selectedDate (Dict.keys model.calendar) |> Maybe.withDefault model.selectedDate }, Cmd.none )
+            ( { model | calendar = SL.select (\e -> Tuple.first e < (Tuple.first <| SL.selected model.calendar)) model.calendar }, Cmd.none )
 
         Next ->
-            ( { model | selectedDate = nextElem model.selectedDate (Dict.keys model.calendar) |> Maybe.withDefault model.selectedDate }, Cmd.none )
+            ( { model | calendar = SL.select (\e -> Tuple.first e > (Tuple.first <| SL.selected model.calendar)) model.calendar }, Cmd.none )
 
 
 main : Program Never Model Msg
