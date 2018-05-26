@@ -109,17 +109,17 @@ view model =
         [ bodyStyleNode
         , div [ class (toCssIdentifier DateBarClass) ]
             [ button [ onClick Previous, class (toCssIdentifier ButtonClass) ] [ text "Previous" ]
-            , text <| Tuple.first <| SL.selected model.calendar
+            , text <| .id <| SL.selected model.calendar
             , button [ onClick Next, class (toCssIdentifier ButtonClass) ] [ text "Next" ]
             ]
-        , SL.selected model.calendar |> Tuple.second |> .tiles |> renderTiles
+        , SL.selected model.calendar |> .tiles |> renderTiles
         , div [] [ text <| toString model ]
         ]
         |> toUnstyled
 
 
 type alias Model =
-    { calendar : SL.SelectList ( String, { tiles : List (List String) } )
+    { calendar : SL.SelectList { id : String, tiles : List (List String) }
     }
 
 
@@ -144,13 +144,13 @@ tiles3 =
     ]
 
 
-calendar : SL.SelectList ( String, { tiles : List (List String) } )
+calendar : SL.SelectList { id : String, tiles : List (List String) }
 calendar =
     SL.fromLists
-        [ ( "2018-05-14", { tiles = tiles } )
-        , ( "2018-05-15", { tiles = tiles2 } )
+        [ { id = "2018-05-14", tiles = tiles }
+        , { id = "2018-05-15", tiles = tiles2 }
         ]
-        ( "2018-05-16", { tiles = tiles3 } )
+        { id = "2018-05-16", tiles = tiles3 }
         []
 
 
@@ -168,10 +168,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Previous ->
-            ( { model | calendar = SL.select (\e -> Tuple.first e < (Tuple.first <| SL.selected model.calendar)) model.calendar }, Cmd.none )
+            ( { model | calendar = SL.select (\e -> e.id < (.id <| SL.selected model.calendar)) model.calendar }, Cmd.none )
 
         Next ->
-            ( { model | calendar = SL.select (\e -> Tuple.first e > (Tuple.first <| SL.selected model.calendar)) model.calendar }, Cmd.none )
+            ( { model | calendar = SL.select (\e -> e.id > (.id <| SL.selected model.calendar)) model.calendar }, Cmd.none )
 
 
 main : Program Never Model Msg
