@@ -1,13 +1,25 @@
 module Main exposing (main)
 
 import Css exposing (..)
-import Css.Foreign exposing (body, each, global)
+import Css.Foreign exposing (body, each, global, html)
 import Css.Helpers exposing (toCssIdentifier)
 import Html
 import Html.Styled exposing (Html, button, div, fromUnstyled, li, styled, text, toUnstyled, ul)
 import Html.Styled.Attributes exposing (class, classList)
 import Html.Styled.Events exposing (onClick)
 import List.Zipper as LZ
+
+
+boxSizingBorderBox : Html msg
+boxSizingBorderBox =
+    global
+        [ html
+            [ boxSizing borderBox
+            ]
+        , Css.Foreign.selector "*, *:before, *:after"
+            [ boxSizing inherit
+            ]
+        ]
 
 
 bodyStyleNode : Html msg
@@ -52,22 +64,23 @@ tilesStyleNode =
         [ Css.Foreign.class TilesClass
             [ displayFlex
             , flexDirection column
+            , margin (px 30)
             ]
         , Css.Foreign.class RowClass
             [ displayFlex
             , width (pct 100)
+            , pseudoClass "not(:first-of-type)"
+                [ marginTop (px tileMarginPx) ]
             ]
         , Css.Foreign.class TileClass
             [ width (pct 50)
             , height (px 200)
             , property "box-shadow" "0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)"
-            , marginLeft (px tileMarginPx)
-            , marginTop (px tileMarginPx)
-            , lastChild
-                [ marginRight (px tileMarginPx)
-                ]
+            , pseudoClass "not(:first-of-type)"
+                [ marginLeft (px tileMarginPx) ]
             , padding (px 20)
             , fontSize (px 34)
+            , flexBasis (calc (pct 50) minus (px (tileMarginPx / 2)))
             ]
         , Css.Foreign.class ButtonClass
             [ margin (px 10)
@@ -106,7 +119,8 @@ view model =
     styled div
         []
         []
-        [ bodyStyleNode
+        [ boxSizingBorderBox
+        , bodyStyleNode
         , div [ class (toCssIdentifier DateBarClass) ]
             [ button
                 [ onClick Previous
